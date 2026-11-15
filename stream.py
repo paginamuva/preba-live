@@ -7,8 +7,8 @@ import time
 # Configuración principal
 STREAM_KEY = os.environ.get("YOUTUBE_STREAM_KEY")
 YOUTUBE_RTMP = f"rtmp://a.rtmp.youtube.com/live2/{STREAM_KEY}"
-IMAGE_PATH = "fondo.jpg"  # Imagen estática de fondo (1280x720 o 1920x1080)
-MUSIC_FOLDER = "musica"   # Carpeta donde guardarás tus archivos .mp3
+IMAGE_PATH = "fondo.jpg"  # Imagen estática de fondo
+MUSIC_FOLDER = "musica"   # Carpeta donde guardaste tus archivos .mp3
 MAX_DURATION = 5 * 3600   # Duración exacta: 5 horas (18,000 segundos)
 
 def get_playlist():
@@ -45,7 +45,7 @@ def start_stream():
 
         print(f"Reproduciendo {track_count} pistas. Tiempo restante: {int(remaining)} segundos.")
 
-        # Comando FFmpeg optimizado para bajo consumo de CPU y límite de tiempo (-t)
+        # Comando FFmpeg actualizado con el filtro de video para corregir el error de dimensiones
         command = [
             "ffmpeg",
             "-re",
@@ -56,6 +56,7 @@ def start_stream():
             "-safe", "0",
             "-i", "playlist.txt",
             "-t", str(int(remaining)),
+            "-vf", "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2", # <-- Corrección de resolución automática
             "-c:v", "libx264",
             "-preset", "ultrafast",
             "-tune", "stillimage",
@@ -73,7 +74,6 @@ def start_stream():
 
         try:
             subprocess.run(command, check=True)
-            # Termina el bucle cuando FFmpeg cumple el tiempo límite (-t)
             break
         except subprocess.CalledProcessError as e:
             print(f"Interrupción detectada ({e}). Reconectando en 5 segundos...")
